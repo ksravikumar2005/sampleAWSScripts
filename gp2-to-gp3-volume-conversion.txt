@@ -1,0 +1,19 @@
+#!/bin/bash
+region="us-east-1"
+for ec2_instance_id in $(aws ec2 describe-instances --region $region --filter "Name=tag:env, Values=dev"  | jq -r '.Reservations[].Instances[].InstanceId')
+do
+for volume_id in $(aws ec2 describe-instances --region $region --instance-id $ec2_instance_id | jq -r '.Reservations[].Instances[].BlockDeviceMappings[].Ebs.VolumeId')
+do 
+volume_type=$(aws ec2 describe-volumes --region $region --volume-id $volume_id  | jq -r '.Volumes[].VolumeType')
+if [ $volume_type == 'gp2' ]; then
+echo "Volume id: $volume_id is of type $volume_type and belongs to Instance id: $ec2_instance_id"
+result=$(aws ec2 modify-volume --region ${region} --volume-type=gp3 --volume-id ${volume_id} | jq '.VolumeModification.ModificationState' | sed 's/"//g')
+if [ $? -eq 0 ] && [ $result == "modifying" ]; then
+echo "OK: volume ${volume_id} changed to state modifying"
+else
+echo "ERROR: could not change volume ${volume_id} type to gp3"
+fi
+else "No gp2 volumes found for converting it to gp3"
+fi
+done
+done
