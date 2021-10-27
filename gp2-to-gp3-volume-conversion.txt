@@ -1,3 +1,5 @@
+#Use this script to convert your existing gp2 volumes to gp3 for a given region
+
 #!/bin/bash
 region="us-east-1"
 for ec2_instance_id in $(aws ec2 describe-instances --region $region --filter "Name=tag:env, Values=dev"  | jq -r '.Reservations[].Instances[].InstanceId')
