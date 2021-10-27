@@ -1,3 +1,4 @@
+#This script checks for ec2 instance or system status checks and sends a notification to SNS topic.
 import json
 import boto3
 from pprint import pprint
